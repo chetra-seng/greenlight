@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"greenlight.chetraseng.com/internal/data"
-	"greenlight.chetraseng.com/internal/validator"
+	"greenlight.chetraseng.com/internal/validator"	
 )
 
 func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Request) {
