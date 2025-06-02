@@ -11,6 +11,7 @@ import (
 	"time"
 
 	_ "github.com/lib/pq"
+	"greenlight.chetraseng.com/internal/data"
 )
 
 const version = "1.0.0"
@@ -29,6 +30,7 @@ type config struct {
 type application struct {
 	config config
 	logger *slog.Logger
+	models data.Models
 }
 
 func main() {
@@ -48,11 +50,6 @@ func main() {
 
 	logger := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
-	app := application{
-		config: cfg,
-		logger: logger,
-	}
-
 	db, err := openDB(cfg)
 
 	if err != nil {
@@ -63,6 +60,12 @@ func main() {
 	defer db.Close()
 
 	logger.Info("database connection pool established")
+
+	app := application{
+		config: cfg,
+		logger: logger,
+		models: data.NewModel(db),
+	}
 
 	srv := http.Server{
 		Addr:         fmt.Sprintf(":%d", cfg.port),
