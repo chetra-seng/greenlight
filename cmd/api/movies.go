@@ -60,94 +60,6 @@ func (app *application) createMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
-	id, err := app.ReadIDParam(r)
-
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	movie, err := app.models.Movies.Get(id)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	err = app.writeJSON(w, http.StatusOK, envolope{"movie": movie}, nil)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-
-func (app *application) updateMovieHanlder(w http.ResponseWriter, r *http.Request) {
-	id, err := app.ReadIDParam(r)
-
-	if err != nil {
-		http.NotFound(w, r)
-		return
-	}
-
-	movie, err := app.models.Movies.Get(id)
-
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
-
-	var input struct {
-		Title   string
-		Year    int32
-		Runtime data.Runtime
-		Genres  []string
-	}
-
-	err = app.readJSON(w, r, &input)
-
-	if err != nil {
-		app.badRequestResponse(w, r, err)
-		return
-	}
-
-	// Update value from request
-	movie.Title = input.Title
-	movie.Year = input.Year
-	movie.Runtime = input.Runtime
-	movie.Genres = input.Genres
-
-	v := validator.New()
-
-	if data.ValidateMovie(v, movie); !v.Valid() {
-		app.failedValidationResponse(w, r, v.Errors)
-		return
-	}
-
-	err = app.models.Movies.Update(movie)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	err = app.writeJSON(w, http.StatusOK, envolope{"movie": movie}, nil)
-
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-	}
-}
-
 func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := app.ReadIDParam(r)
 
@@ -169,6 +81,115 @@ func (app *application) deleteMovieHandler(w http.ResponseWriter, r *http.Reques
 	}
 
 	err = app.writeJSON(w, http.StatusNoContent, nil, nil)
+
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) updateMovieHanlder(w http.ResponseWriter, r *http.Request) {
+	id, err := app.ReadIDParam(r)
+
+	if err != nil {
+		app.notFoundResponse(w, r)
+		return
+	}
+
+	movie, err := app.models.Movies.Get(id)
+
+	if err != nil {
+
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	// Use point to avoid default value as "" or 0
+	var input struct {
+		Title   *string
+		Year    *int32
+		Runtime *data.Runtime
+		Genres  []string
+	}
+
+	err = app.readJSON(w, r, &input)
+
+	if err != nil {
+
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	// Manually checking each field
+
+	if input.Title != nil {
+		movie.Title = *input.Title
+	}
+
+	if input.Year != nil {
+		movie.Year = *input.Year
+	}
+
+	if input.Runtime != nil {
+		movie.Runtime = *input.Runtime
+	}
+
+	if input.Genres != nil {
+		movie.Genres = input.Genres
+	}
+
+	v := validator.New()
+
+	if data.ValidateMovie(v, movie); !v.Valid() {
+		app.failedValidationResponse(w, r, v.Errors)
+		return
+	}
+
+	err = app.models.Movies.Update(movie)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envolope{"movie": movie}, nil)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+}
+
+func (app *application) showMovieHandler(w http.ResponseWriter, r *http.Request) {
+	id, err := app.ReadIDParam(r)
+
+	if err != nil {
+		http.NotFound(w, r)
+		return
+	}
+
+	movie, err := app.models.Movies.Get(id)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w, r)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	err = app.writeJSON(w, http.StatusOK, envolope{"movie": movie}, nil)
 
 	if err != nil {
 		app.serverErrorResponse(w, r, err)

@@ -11,6 +11,7 @@ type Models struct {
 
 var (
 	ErrRecordNotFound = errors.New("record not found")
+	ErrEditConflict   = errors.New("edit conflict")
 )
 
 func NewModel(db *sql.DB) Models {
