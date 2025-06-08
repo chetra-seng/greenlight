@@ -7,10 +7,12 @@ import (
 	"io"
 	"maps"
 	"net/http"
+	"net/url"
 	"strconv"
 	"strings"
 
 	"github.com/julienschmidt/httprouter"
+	"greenlight.chetraseng.com/internal/validator"
 )
 
 type envolope map[string]any
@@ -107,6 +109,48 @@ func (app *application) readJSON(w http.ResponseWriter, r *http.Request, dst any
 	return nil
 }
 
+// Returns a JSON response to client with bad request status code
 func (app *application) badRequestResponse(w http.ResponseWriter, r *http.Request, err error) {
 	app.errorResponse(w, r, http.StatusBadRequest, err.Error())
+}
+
+// Reads a string parameter from the query string and returns the default value if not found
+func (app *application) readString(qs url.Values, key, defaultValue string) string {
+	v := qs.Get(key)
+
+	if v == "" {
+		return defaultValue
+	}
+
+	return v
+}
+
+// Reads a string parameter then the result the values in slices.
+// Returns defaultValue slices if not found
+func (app *application) readCSV(qs url.Values, key string, defaultValue []string) []string {
+	csv := qs.Get(key)
+
+	if csv == "" {
+		return defaultValue
+	}
+
+	return strings.Split(csv, ",")
+}
+
+// readInt reads a string parameter and parse it to int and returns the default value if not found.
+// Add error message to the validator if the value is not a valid int
+func (app *application) readInt(qs url.Values, key string, defaultValue int, v *validator.Validator) int {
+	value := qs.Get(key)
+
+	if value == "" {
+		return defaultValue
+	}
+
+	i, err := strconv.Atoi(value)
+
+	if err != nil {
+		v.AddError(key, "must be an integer value")
+	}
+
+	return i
 }
