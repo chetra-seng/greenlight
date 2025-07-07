@@ -8,6 +8,8 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -77,21 +79,13 @@ func main() {
 		models: data.NewModel(db),
 	}
 
-	srv := http.Server{
-		Addr:         fmt.Sprintf(":%d", cfg.port),
-		Handler:      app.routes(),
-		IdleTimeout:  time.Minute,
-		ReadTimeout:  5 * time.Second,
-		WriteTimeout: 10 * time.Second,
-		ErrorLog:     slog.NewLogLogger(app.logger.Handler(), slog.LevelError),
+	err = app.server()
+
+	if err != nil {
+
+		logger.Error(err.Error())
+		os.Exit(1)
 	}
-
-	logger.Info("starting server", "addr", srv.Addr, "env", cfg.env)
-	err = srv.ListenAndServe()
-
-	logger.Error(err.Error())
-	os.Exit(1)
-
 }
 
 func openDB(cfg config) (*sql.DB, error) {
