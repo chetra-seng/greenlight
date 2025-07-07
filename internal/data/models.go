@@ -7,6 +7,7 @@ import (
 
 type Models struct {
 	Movies MovieModel
+	Users  UserModel
 }
 
 var (
@@ -16,6 +17,7 @@ var (
 
 func NewModel(db *sql.DB) Models {
 	return Models{
+		Users:  UserModel{DB: db},
 		Movies: MovieModel{DB: db},
 	}
 }
