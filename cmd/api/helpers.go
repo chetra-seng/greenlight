@@ -155,17 +155,20 @@ func (app *application) readInt(qs url.Values, key string, defaultValue int, v *
 	return i
 }
 
-// background accept a function as parameter 
+// background accept a function as parameter
 // and start a new go routine with the function as well as panic recovery
 func (app *application) background(fn func()) {
+	app.wg.Add(1)
 	// Start a new routine with panic recovery and background function
 	go func() {
+		defer app.wg.Done()
 
 		// Recover from panic in same go routine
 		defer func() {
 			if err := recover(); err != nil {
 				app.logger.Error(fmt.Sprintf("%v", err))
 			}
+
 		}()
 
 		fn()
