@@ -91,7 +91,7 @@ func (m *UserModel) Insert(user *User) error {
 	query := `
 			INSERT INTO users (name, email, password_hash, activated)
 			VALUEs ($1, $2, $3, $4)
-			RETURNING id, created, version
+			RETURNING id, created_at, version
 	`
 
 	args := []any{
