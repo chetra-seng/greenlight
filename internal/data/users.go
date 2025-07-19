@@ -26,12 +26,18 @@ type password struct {
 	hash      []byte
 }
 
+type UserModel struct {
+	DB *sql.DB
+}
+
 var (
 	ErrDuplicateEmail = errors.New("duplicate email")
 )
 
-type UserModel struct {
-	DB *sql.DB
+var AnonymousUser = &User{}
+
+func (u *User) IsAnonymousUser() bool {
+	return u == AnonymousUser
 }
 
 func (p *password) Set(plantextPassword string) error {
