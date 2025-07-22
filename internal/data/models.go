@@ -6,9 +6,10 @@ import (
 )
 
 type Models struct {
-	Movies MovieModel
-	Users  UserModel
-	Tokens TokenModel
+	Movies      MovieModel
+	Users       UserModel
+	Tokens      TokenModel
+	Permissions PermissionModel
 }
 
 var (
@@ -18,8 +19,9 @@ var (
 
 func NewModel(db *sql.DB) Models {
 	return Models{
-		Users:  UserModel{DB: db},
-		Movies: MovieModel{DB: db},
-    Tokens: TokenModel{DB: db},
+		Users:       UserModel{DB: db},
+		Movies:      MovieModel{DB: db},
+		Tokens:      TokenModel{DB: db},
+		Permissions: PermissionModel{DB: db},
 	}
 }

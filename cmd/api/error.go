@@ -59,3 +59,15 @@ func (app *application) invalidAuthenticationTokenResponse(w http.ResponseWriter
 	w.Header().Add("WWW-Authenticate", "Bearer")
 	app.errorResponse(w, r, http.StatusUnauthorized, "invalid or missing authentication token")
 }
+
+func (app *application) authentiationRequiredResponse(w http.ResponseWriter, r *http.Request) {
+	app.errorResponse(w, r, http.StatusUnauthorized, "you must be authenticated to access this resource")
+}
+
+func (app *application) inActiveAccountResponse(w http.ResponseWriter, r *http.Request) {
+	app.errorResponse(w, r, http.StatusForbidden, "your user account must be activated to access this resource")
+}
+
+func (app *application) notPermittedResponse(w http.ResponseWriter, r *http.Request) {
+	app.errorResponse(w, r, http.StatusForbidden, "your uses account does not have the necessary permission to access this resource")
+}
