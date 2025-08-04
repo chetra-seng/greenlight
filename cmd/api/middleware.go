@@ -4,7 +4,6 @@ import (
 	"errors"
 	"expvar"
 	"fmt"
-	"net"
 	"net/http"
 	"slices"
 	"strconv"
@@ -12,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 	"greenlight.chetraseng.com/internal/data"
 	"greenlight.chetraseng.com/internal/validator"
@@ -100,15 +100,9 @@ func (app *application) rateLimit(next http.Handler) http.Handler {
 
 		if app.config.limiter.enabled {
 			// Check if the rate is allowed
-			ip, _, err := net.SplitHostPort(r.RemoteAddr)
+			ip := realip.FromRequest(r)
 
-			if err != nil {
-				app.serverErrorResponse(w, r, err)
-				return
-			}
-
-			// Lock this mutex to prevent this code from excuting concurrently
-			mu.Lock()
+			mu.Lock() // Lock this mutex to prevent this code from excuting concurrently
 
 			if _, found := clients[ip]; !found {
 				clients[ip] = &client{limiter: rate.NewLimiter(rate.Limit(app.config.limiter.rps), app.config.limiter.burst)}
