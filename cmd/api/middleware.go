@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/pascaldekloe/jwt"
 	"github.com/tomasen/realip"
 	"golang.org/x/time/rate"
 	"greenlight.chetraseng.com/internal/data"
-	"greenlight.chetraseng.com/internal/validator"
 )
 
 type metricsResponseWriter struct {
@@ -150,14 +150,38 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		// Validate token
 		token := headerParts[1]
 
-		v := validator.New()
+		// Extract claims from jwt token
+		claims, err := jwt.HMACCheck([]byte(token), []byte(app.config.jwt.secret))
 
-		if data.ValidateTokenPlaintext(v, token); !v.Valid() {
+
+		if err != nil {
 			app.invalidAuthenticationTokenResponse(w, r)
 			return
 		}
 
-		user, err := app.models.Users.GetByToken(data.ScopeAuthentication, token)
+		if !claims.Valid(time.Now()) {
+			app.invalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		if claims.Issuer != "greenlight.chetraseng.com" {
+			app.invalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		if !claims.AcceptAudience("greenlight.chetraseng.com") {
+			app.invalidAuthenticationTokenResponse(w, r)
+			return
+		}
+
+		userID, err := strconv.ParseInt(claims.Subject, 10, 64)
+
+		if err != nil {
+			app.serverErrorResponse(w, r, err)
+			return
+		}
+
+		user, err := app.models.Users.Get(userID)
 		if err != nil {
 			switch {
 			case errors.Is(err, data.ErrRecordNotFound):

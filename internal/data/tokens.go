@@ -14,6 +14,7 @@ import (
 const (
 	ScopeActivation     = "activation"
 	ScopeAuthentication = "authentication"
+	ScopePasswordReset  = "password-reset"
 )
 
 type Token struct {
@@ -28,10 +29,10 @@ type TokenModel struct {
 	DB *sql.DB
 }
 
-func generateToken(userId int64, ttl time.Duration, scope string) (*Token, error) {
+func generateToken(userID int64, ttl time.Duration, scope string) (*Token, error) {
 	token := &Token{
 		Expiry: time.Now().Add(ttl),
-		UserID: userId,
+		UserID: userID,
 		Scope:  scope,
 	}
 

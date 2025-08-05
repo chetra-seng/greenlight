@@ -47,6 +47,9 @@ type config struct {
 	cors struct {
 		trustedOrigins []string
 	}
+	jwt struct {
+		secret string
+	}
 }
 
 type application struct {
@@ -81,6 +84,9 @@ func main() {
 	flag.StringVar(&cfg.smtp.username, "smtp-username", "0cdb05f1e34c8b", "SMTP username")
 	flag.StringVar(&cfg.smtp.password, "smtp-password", "hehe-password", "SMTP password")
 	flag.StringVar(&cfg.smtp.sender, "smtp-sender", "Greenlight <no-reply@greenlight.chetraseng.com>", "SMTP sender")
+
+	// Read JWT secret
+	flag.StringVar(&cfg.jwt.secret, "jwt-secret", "", "JWT secret")
 
 	// Read cors trusted origins
 	flag.Func("cors-trusted-origins", "Trusted CORS origins (space separated)", func(val string) error {

@@ -21,7 +21,7 @@ confirm:
 ## run/api: run the cmd/api application
 .PHONY: run/api
 run/api:
-	@go run ./cmd/api -db-dsn="${GREENLIGHT_DB_DSN}" -smtp-password "${GREENLIGHT_SMTP_PASSWORD}"
+	@go run ./cmd/api -db-dsn="${GREENLIGHT_DB_DSN}" -smtp-password "${GREENLIGHT_SMTP_PASSWORD}" -jwt-secret="${JWT_SECRET}"
 
 # ===================================================================== #
 # DATABASE
